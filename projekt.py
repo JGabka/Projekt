@@ -177,10 +177,10 @@ params = {'pomieszczenia': {'pokoj_1': [0, 40, 0, 50,293],
 
 dom = Dom(params)
 
-dt = 0.25  # Krok czasowy animacji
-frames = 100  # Liczba klatek
+dt = 0.25
+frames = 100  
 def update(frame):
-    dom.evolve(1, dt)  # Aktualizacja jednej klatki (lub dowolna inna metoda, aby zaktualizować stan)
+    dom.evolve(1, dt)
     im.set_array(dom.macierz['mieszkanie'])
     return im,
 
