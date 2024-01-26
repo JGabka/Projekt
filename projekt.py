@@ -15,6 +15,7 @@ class Dom:
         for w in self.params['grzejniki'].keys():
             self.maska_grzejniki[self.params['grzejniki'][w][0]:self.params['grzejniki'][w][1],
             self.params['grzejniki'][w][2]:self.params['grzejniki'][w][3]] = self.params['grzejniki'][w][-1]
+        return self
 
 
     def build_partial_matrix(self):
@@ -25,9 +26,9 @@ class Dom:
             else: # metoda ktora robi self.macierze z self.macierz
                 self.macierze[key] = self.macierz['mieszkanie'][self.params['pomieszczenia'][key][0]:self.params['pomieszczenia'][key][1],
                 self.params['pomieszczenia'][key][2]:self.params['pomieszczenia'][key][3]]
-        for key in self.params['okna'].keys():
-            self.macierz['mieszkanie'][self.params['okna'][key][0]:self.params['okna'][key][1],
-            self.params['okna'][key][2]:self.params['okna'][key][3]] = self.macierze[key]
+        # for key in self.params['okna'].keys():
+        #     self.macierz['mieszkanie'][self.params['okna'][key][0]:self.params['okna'][key][1],
+        #     self.params['okna'][key][2]:self.params['okna'][key][3]] = self.macierze[key]
 
         return self
 
@@ -35,6 +36,7 @@ class Dom:
         for key in self.params['pomieszczenia'].keys():
             self.macierz['mieszkanie'][self.params['pomieszczenia'][key][0]:self.params['pomieszczenia'][key][1],
             self.params['pomieszczenia'][key][2]:self.params['pomieszczenia'][key][3]] = self.macierze[key]
+        return self
 
 
 
@@ -43,9 +45,10 @@ class Dom:
         for n in range(n):
             self.unit_evolve(dt)
             self.params['current_time'] +=dt
+        return self
 
     def unit_evolve(self,dt):
-        f = self.params['funkcja_grzejniki'](self.maska_grzejniki)
+        f = self.params['funkcja_grzejnik'](self.maska_grzejniki)
         ct= self.params['diffusion']*dt/self.params['dziedzina']['dx']**2
         for w in self.params['okna'].keys():
             self.macierz['mieszkanie'][self.params['okna'][w][0]:self.params['okna'][w][1],
@@ -57,13 +60,11 @@ class Dom:
                 self.params['pomieszczenia'][p][0]:self.params['pomieszczenia'][p][1],
                 self.params['pomieszczenia'][p][2]:self.params['pomieszczenia'][p][3]
                 ]=0
-            self.macierze[p][1:-1,1:-1] = self.macierze[p][1:-1, 1:-1] +\
-                                            ct* (self.macierze[p][2:, 1:-1]+self.macierze[p][:-2, 1:-1]
+            self.macierze[p][1:-1,1:-1] = self.macierze[p][1:-1, 1:-1] +ct * (self.macierze[p][2:, 1:-1]+self.macierze[p][:-2, 1:-1]
                                             + self.macierze[p][1:-1, 2:] + self.macierze[p][1:-1,:-2]
-                                            - 4*self.macierze[p][1:-1, 1:-1]) +\
-                                           dt*f[
-                                              self.params['pomieszczenia'][p][0]:self.params['pomieszczenia'][p][1],
-                                              self.params['pomieszczenia'][p][2]:self.params['pomieszczenia'][p][3]
+                                            - 4*self.macierze[p][1:-1, 1:-1]) +dt*f[
+                                              self.params['pomieszczenia'][p][0]+1:self.params['pomieszczenia'][p][1]-1,
+                                              self.params['pomieszczenia'][p][2]+1:self.params['pomieszczenia'][p][3]-1
                                               ]
             self.macierze[p][0,:] = self.macierze[p][1,:]
             self.macierze[p][-1,:] = self.macierze[p][-2,:]
@@ -76,6 +77,7 @@ class Dom:
                                         self.macierz['mieszkanie'][self.params['drzwi'][d][0]:self.params['drzwi'][d][1],
                                         self.params['drzwi'][d][2]:self.params['drzwi'][d][3]])
         self.build_partial_matrix()
+        return self
 
 
 params = {'pomieszczenia': {'pokoj_1': [0, 40, 0, 50,293],
@@ -142,9 +144,9 @@ params = {'pomieszczenia': {'pokoj_1': [0, 40, 0, 50,293],
                     'drzwi6': [89, 91, 65, 70]
                     },
 
-          'maska': {'pokoj_1': 270, 'łazienka': 285, 'pokoj_2': 290,'salon': 280, 'pokoj_3': 300, 'ppokoj': 270,
-                    'kuchnia': 275},
-          'diffuson': 1,
+          'maska': {'pokoj_1': 280, 'łazienka': 280, 'pokoj_2': 280,'salon': 280, 'pokoj_3': 280, 'ppokoj': 280,
+                    'kuchnia': 280},
+          'diffusion': 1,
           'current_time':0,
           'dziedzina': {'siatka':np.meshgrid(np.linspace(0,1,120),np.linspace(0,1,80)),
                         'dx':1},
@@ -173,11 +175,11 @@ params = {'pomieszczenia': {'pokoj_1': [0, 40, 0, 50,293],
 
 
 dom = Dom(params)
-Dom.evolve(dom,20,20)
-Dom.build_partial_matrix(dom)
-Dom.build_partial_matrix(dom)
+Dom.evolve(dom,10,0.1)
+
 
 plt.imshow(dom.macierz['mieszkanie'])
+
 
 
 plt.show()
