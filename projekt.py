@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.animation as anm
 
 
 class Dom:
@@ -26,9 +27,9 @@ class Dom:
             else: # metoda ktora robi self.macierze z self.macierz
                 self.macierze[key] = self.macierz['mieszkanie'][self.params['pomieszczenia'][key][0]:self.params['pomieszczenia'][key][1],
                 self.params['pomieszczenia'][key][2]:self.params['pomieszczenia'][key][3]]
-        # for key in self.params['okna'].keys():
-        #     self.macierz['mieszkanie'][self.params['okna'][key][0]:self.params['okna'][key][1],
-        #     self.params['okna'][key][2]:self.params['okna'][key][3]] = self.macierze[key]
+        for key in self.params['okna'].keys():
+            self.macierze[key] = self.macierz['mieszkanie'][self.params['okna'][key][0]:self.params['okna'][key][1],
+            self.params['okna'][key][2]:self.params['okna'][key][3]]
 
         return self
 
@@ -151,14 +152,14 @@ params = {'pomieszczenia': {'pokoj_1': [0, 40, 0, 50,293],
           'dziedzina': {'siatka':np.meshgrid(np.linspace(0,1,120),np.linspace(0,1,80)),
                         'dx':1},
           'funkcja_grzejnik': lambda x: np.where(
-              x==1, 0.1, np.where(
-                  x==2, 0.2, np.where(
-                      x==3, 0.3, np.where(
-                        x==4, 0.4, np.where(
-                            x==5, 0.1, np.where(
-                              x==6, 0.2, np.where(
-                                  x==7, 0.3, np.where(
-                                    x==8, 0.4, np.where(
+              x==1, 5000, np.where(
+                  x==2, 50, np.where(
+                      x==3, 0.5, np.where(
+                        x==4, 0.5, np.where(
+                            x==5, 0.5, np.where(
+                              x==6, 0.5, np.where(
+                                  x==7, 0.5, np.where(
+                                    x==8, 0.5, np.where(
                                         x==9, 0.5, 0
                                           )
                                       )
@@ -175,12 +176,21 @@ params = {'pomieszczenia': {'pokoj_1': [0, 40, 0, 50,293],
 
 
 dom = Dom(params)
-Dom.evolve(dom,10,0.1)
+
+dt = 0.25  # Krok czasowy animacji
+frames = 100  # Liczba klatek
+def update(frame):
+    dom.evolve(1, dt)  # Aktualizacja jednej klatki (lub dowolna inna metoda, aby zaktualizować stan)
+    im.set_array(dom.macierz['mieszkanie'])
+    return im,
 
 
-plt.imshow(dom.macierz['mieszkanie'])
+fig, ax = plt.subplots()
+im = ax.imshow(dom.macierz['mieszkanie'], animated=True)
 
 
-
+ani = anm.FuncAnimation(fig, update, frames=frames, blit=True)
 plt.show()
+
+
 #if __name__ =='main':
