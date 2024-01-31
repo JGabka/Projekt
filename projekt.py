@@ -9,8 +9,10 @@ class Dom:
         self.macierz = {'mieszkanie': np.zeros((120,80))}
         self.macierze = {}
         self.maska_grzejniki = np.zeros((120,80))
+        self.energy = np.empty((1,1))
         self.build_partial_matrix()
         self.build_result_matrix()
+        self.build_mask_matrix()
 
     def build_mask_matrix(self):
         for w in self.params['grzejniki'].keys():
@@ -30,7 +32,6 @@ class Dom:
         for key in self.params['okna'].keys():
             self.macierze[key] = self.macierz['mieszkanie'][self.params['okna'][key][0]:self.params['okna'][key][1],
             self.params['okna'][key][2]:self.params['okna'][key][3]]
-
         return self
 
     def build_result_matrix(self): #metoda ktora robi self.macierz z self.macierze
@@ -39,13 +40,11 @@ class Dom:
             self.params['pomieszczenia'][key][2]:self.params['pomieszczenia'][key][3]] = self.macierze[key]
         return self
 
-
-
-
     def evolve(self,n,dt):
         for n in range(n):
             self.unit_evolve(dt)
             self.params['current_time'] +=dt
+        self.energy = np.cumsum(self.energy)
         return self
 
     def unit_evolve(self,dt):
@@ -72,6 +71,13 @@ class Dom:
             self.macierze[p][:,0] = self.macierze[p][:,1]
             self.macierze[p][:, -1] = self.macierze[p][:, -2]
         self.build_result_matrix()
+
+        self.energy = np.append(self.energy, np.sum(f))
+
+        for i in f:
+            for j in i:
+                self.energy+=j
+
         for d in self.params['drzwi'].keys():
             self.macierz['mieszkanie'][self.params['drzwi'][d][0]:self.params['drzwi'][d][1],
                                         self.params['drzwi'][d][2]:self.params['drzwi'][d][3]] = np.mean(
@@ -79,6 +85,8 @@ class Dom:
                                         self.params['drzwi'][d][2]:self.params['drzwi'][d][3]])
         self.build_partial_matrix()
         return self
+
+
 
 
 params = {'pomieszczenia': {'pokoj_1': [0, 40, 0, 50,293],
@@ -145,22 +153,22 @@ params = {'pomieszczenia': {'pokoj_1': [0, 40, 0, 50,293],
                     'drzwi6': [89, 91, 65, 70]
                     },
 
-          'maska': {'pokoj_1': 280, 'łazienka': 280, 'pokoj_2': 280,'salon': 280, 'pokoj_3': 280, 'ppokoj': 280,
-                    'kuchnia': 280},
+          'maska': {'pokoj_1': 285, 'łazienka': 285, 'pokoj_2': 285,'salon': 285, 'pokoj_3': 285, 'ppokoj': 285,
+                    'kuchnia': 285},
           'diffusion': 1,
           'current_time':0,
           'dziedzina': {'siatka':np.meshgrid(np.linspace(0,1,120),np.linspace(0,1,80)),
                         'dx':1},
           'funkcja_grzejnik': lambda x: np.where(
-              x==1, 5000, np.where(
-                  x==2, 50, np.where(
-                      x==3, 0.5, np.where(
-                        x==4, 0.5, np.where(
-                            x==5, 0.5, np.where(
-                              x==6, 0.5, np.where(
-                                  x==7, 0.5, np.where(
-                                    x==8, 0.5, np.where(
-                                        x==9, 0.5, 0
+              x==1, 15, np.where(
+                  x==2, 15, np.where(
+                      x==3, 15, np.where(
+                        x==4, 15, np.where(
+                            x==5, 15, np.where(
+                              x==6, 15, np.where(
+                                  x==7, 15, np.where(
+                                    x==8, 15, np.where(
+                                        x==9, 15, 0
                                           )
                                       )
                                   )
@@ -178,7 +186,7 @@ params = {'pomieszczenia': {'pokoj_1': [0, 40, 0, 50,293],
 dom = Dom(params)
 
 dt = 0.25
-frames = 100  
+frames = 10
 def update(frame):
     dom.evolve(1, dt)
     im.set_array(dom.macierz['mieszkanie'])
@@ -188,9 +196,10 @@ def update(frame):
 fig, ax = plt.subplots()
 im = ax.imshow(dom.macierz['mieszkanie'], animated=True)
 
-
+dom.build_mask_matrix()
 ani = anm.FuncAnimation(fig, update, frames=frames, blit=True)
+plt.colorbar(im)
 plt.show()
-
+print(dom.energy)
 
 #if __name__ =='main':
