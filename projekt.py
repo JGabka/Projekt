@@ -10,6 +10,7 @@ class Dom:
         self.macierze = {}
         self.maska_grzejniki = np.zeros((120,80))
         self.energy = np.empty((1,1))
+        self.e = 0
         self.build_partial_matrix()
         self.build_result_matrix()
         self.build_mask_matrix()
@@ -44,7 +45,7 @@ class Dom:
         for n in range(n):
             self.unit_evolve(dt)
             self.params['current_time'] +=dt
-        self.energy = np.cumsum(self.energy)
+        self.e = np.cumsum(self.energy)
         return self
 
     def unit_evolve(self,dt):
@@ -94,7 +95,7 @@ params = {'pomieszczenia': {'pokoj_1': [0, 40, 0, 50,293],
                             'pokoj_2': [40, 80, 0, 30,293],
                             'salon': [40, 90, 30, 80,293],
                             'pokoj_3': [80, 120, 0, 30,293],
-                            'ppokoj': [90, 120, 30, 50,293],
+                            'ppokoj': [90, 120, 30, 50,290],
                             'kuchnia': [90, 120, 50, 80,293]},
 
           'ściany': {'ściana1': [0, 2, 0, 20],
@@ -188,18 +189,25 @@ dom = Dom(params)
 dt = 0.25
 frames = 10
 def update(frame):
-    dom.evolve(1, dt)
-    im.set_array(dom.macierz['mieszkanie'])
-    return im,
-
+     dom.evolve(1, dt)
+     im.set_array(dom.macierz['mieszkanie'])
+     return im,
 
 fig, ax = plt.subplots()
 im = ax.imshow(dom.macierz['mieszkanie'], animated=True)
 
 dom.build_mask_matrix()
-ani = anm.FuncAnimation(fig, update, frames=frames, blit=True)
+
+ani = anm.FuncAnimation(fig, update, frames=frames, blit=True, interval=1)
+
 plt.colorbar(im)
 plt.show()
-print(dom.energy)
+
+plt.plot(dom.e,label='1')
+plt.legend()
+plt.xlabel('Czas')
+plt.ylabel('Ilość zużytej energii')
+plt.show()
+
 
 #if __name__ =='main':
